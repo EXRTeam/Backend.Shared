@@ -24,15 +24,4 @@ public static class RepositoryExtensions {
              filter,
              x => new { x.Id },
              token);
-
-    public static Task<TEntity?> GetEntity<TEntity, TDto>(
-        this IRepository<TEntity> repository,
-        Guid id,
-        Expression<Func<TEntity, TDto>> selector,
-        CancellationToken token = default)
-        where TEntity : class, IAggregateRoot
-        => repository.GetEntity(
-            x => x.Id == id, 
-            selector,
-            token);
 }
