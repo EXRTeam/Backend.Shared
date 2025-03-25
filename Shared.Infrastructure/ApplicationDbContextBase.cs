@@ -12,12 +12,6 @@ public abstract class ApplicationDbContextBase(DbContextOptions options) : DbCon
 
     public Task<int> SaveChanges(CancellationToken token) => SaveChangesAsync(token);
 
-    protected sealed override void OnModelCreating(ModelBuilder modelBuilder) {
-        ConfigureModel(modelBuilder);
-        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
-    }
-
-    protected sealed override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
-
-    protected abstract void ConfigureModel(ModelBuilder modelBuilder);
+    protected static void ApplyOutboxMessageConfiguration(ModelBuilder builder)
+        => builder.ApplyConfiguration(new OutboxMessageConfiguration());
 }
