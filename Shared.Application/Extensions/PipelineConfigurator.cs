@@ -6,7 +6,7 @@ using Shared.Application.Pagination;
 
 namespace Shared.Application;
 
-public static class ServiceConfiguratorForMediator {
+public static class PipelineConfigurator {
     public static IServiceCollection AddValidationPipeline(
         this IServiceCollection services)
         => services
