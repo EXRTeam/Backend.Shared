@@ -41,8 +41,6 @@ public static class ServiceCollectionExtensions {
             contextLifetime: ServiceLifetime.Scoped,
             optionsLifetime: ServiceLifetime.Singleton);
 
-        services.AddScoped<DbContext>(x => x.GetRequiredService<TContext>());
-        services.AddScoped<ApplicationDbContextBase>(x => x.GetRequiredService<TContext>());
         services.AddScoped<IUnitOfWork>(x => x.GetRequiredService<TContext>());
 
         return services;

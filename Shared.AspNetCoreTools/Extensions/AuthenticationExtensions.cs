@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Infrastructure.Options;
 using System.Text;
 
 namespace Shared.AspNetCoreTools.Extensions;
@@ -7,17 +9,29 @@ namespace Shared.AspNetCoreTools.Extensions;
 public static class AuthenticationExtensions {
     public static AuthenticationBuilder AddJwtAuthentication(
         this AuthenticationBuilder builder,
-        IConfiguration jwtOptionsSection) 
-        => builder
+        IConfiguration jwtOptionsSection) {
+        var key = Encoding.UTF8.GetBytes(jwtOptionsSection["Key"]!);
+        var issuer = jwtOptionsSection["Issuer"]!;
+        var audience = jwtOptionsSection["Audience"]!;
+
+        builder.Services.TryAddSingleton(new JwtAuthenticationOptions {
+            Key = key,
+            Issuer = issuer,
+            Audience = audience,
+        });
+
+        builder
             .AddJwtBearer(options =>
                 options.TokenValidationParameters = new TokenValidationParameters {
                     ValidateIssuer = true,
-                    ValidIssuer = jwtOptionsSection["Issuer"],
+                    ValidIssuer = issuer,
                     ValidateAudience = true,
-                    ValidAudience = jwtOptionsSection["Audience"],
+                    ValidAudience = audience,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtOptionsSection["Key"]!)),
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateLifetime = true,
                 });
+
+        return builder;
+    }
 }

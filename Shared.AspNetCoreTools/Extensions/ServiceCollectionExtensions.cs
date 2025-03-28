@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Shared.AspNetCoreTools.Options;
 using System.Reflection;
 
 namespace Shared.AspNetCoreTools.Extensions;
@@ -23,10 +24,12 @@ public static class ServiceCollectionExtensions {
 
             options.AddConsumers(consumersAssembly);
 
+            var messageBrokerOptions = messageBrokerOptionsSection.Get<MessageBrokerOptions>();
+
             options.UsingRabbitMq((context, configurator) => {
-                configurator.Host(new Uri(messageBrokerOptionsSection["Host"]!), hostConfigurator => {
-                    hostConfigurator.Username(messageBrokerOptionsSection["Username"]!);
-                    hostConfigurator.Password(messageBrokerOptionsSection["Password"]!);
+                configurator.Host(new Uri(messageBrokerOptions!.Host), hostConfigurator => {
+                    hostConfigurator.Username(messageBrokerOptions.Username);
+                    hostConfigurator.Password(messageBrokerOptions.Password);
                 });
 
                 configurator.ConfigureEndpoints(context);

@@ -7,8 +7,8 @@ using System.Data;
 namespace Shared.Infrastructure;
 
 public abstract class ApplicationDbContextBase(DbContextOptions options) : DbContext(options), IUnitOfWork {
-    public async Task<IDbTransaction> BeginTransaction(CancellationToken token) 
-        => (await Database.BeginTransactionAsync(token)).GetDbTransaction();
+    public async Task<IDbTransaction> BeginTransaction(IsolationLevel isolationLevel, CancellationToken token) 
+        => (await Database.BeginTransactionAsync(isolationLevel, token)).GetDbTransaction();
 
     public Task<int> SaveChanges(CancellationToken token) => SaveChangesAsync(token);
 
