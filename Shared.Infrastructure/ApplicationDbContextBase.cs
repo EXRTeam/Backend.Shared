@@ -13,5 +13,8 @@ public abstract class ApplicationDbContextBase(DbContextOptions options) : DbCon
     public Task<int> SaveChanges(CancellationToken token) => SaveChangesAsync(token);
 
     protected static void ApplyOutboxMessageConfiguration(ModelBuilder builder)
-        => builder.ApplyConfiguration(new OutboxMessageConfiguration());
+        => builder
+            .Entity<OutboxMessage>()
+            .ToTable("outbox_messages")
+            .HasKey(x => x.Id);
 }

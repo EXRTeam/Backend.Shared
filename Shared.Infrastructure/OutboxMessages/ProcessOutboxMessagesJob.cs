@@ -8,7 +8,7 @@ using Shared.Domain.Entities;
 namespace Shared.Infrastructure.OutboxMessages;
 
 internal sealed class ProcessOutboxMessagesJob(
-    DbContext dbContext, 
+    ApplicationDbContextBase dbContext, 
     IPublisher publisher,
     ILogger<ProcessOutboxMessagesJob> logger) 
     : IJob {
@@ -34,6 +34,7 @@ internal sealed class ProcessOutboxMessagesJob(
                 await publisher.Publish(domainEvent, context.CancellationToken);
 
                 message.ProcessedOnUtc = DateTime.UtcNow;
+                message.Error = null;
             } catch (Exception exception) {
                 message.Error = exception.Message;
             }

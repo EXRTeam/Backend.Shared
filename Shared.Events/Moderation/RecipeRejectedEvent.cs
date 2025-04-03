@@ -1,4 +1,4 @@
-﻿namespace Shared.Events.Moderation;
+﻿namespace Shared.Messages.Moderation;
 
 public record RecipeRejectedEvent(
     Guid RecipeId,

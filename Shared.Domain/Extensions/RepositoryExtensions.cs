@@ -6,12 +6,12 @@ namespace Shared.Domain.Extensions;
 
 public static class RepositoryExtensions {
     public static Task<TEntity?> GetMinimalEntity<TEntity>(
-        this IRepository<TEntity> repository,
+        this IAggregateRootRepository<TEntity> repository,
         Guid id,
         CancellationToken token)
         where TEntity : class, IAggregateRoot
         => repository.GetEntity(
-            x => x.Id == id,
+            id,
             x => new { x.Id },
             token);
 

@@ -1,3 +1,3 @@
-﻿namespace Shared.Events.Users;
+﻿namespace Shared.Messages.Users;
 
-public record UserCreatedEvent(Guid UserId);
+public record UserCreatedEvent(Guid UserId, string? Email);

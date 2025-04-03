@@ -1,64 +1,45 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Shared.Domain.Entities;
 using Shared.Domain.Repositories;
 using Shared.Infrastructure.Utils;
 using System.Linq.Expressions;
 
 namespace Shared.Infrastructure.Repositories;
 
-public abstract class BaseSqlRepository<TEntity>(DbContext context) : IRepository<TEntity>
-    where TEntity : class, IAggregateRoot {
+public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<TEntity> where TEntity: class {
     protected DbSet<TEntity> Entities => context.Set<TEntity>();
     protected IQueryable<TEntity> EntitiesNoTracking => Entities.AsNoTracking();
 
-    public Task<TEntity?> GetEntity<TDataLoadDefinition>(
-        Guid id, 
-        Expression<Func<TEntity, TDataLoadDefinition>> dataForLoad, 
-        CancellationToken token = default)
-        => GetEntity(x => x.Id == id, dataForLoad, token);
+    public Task<TEntity?> GetEntity<TLoadData>(
+        Expression<Func<TEntity, bool>> filter,
+        Expression<Func<TEntity, TLoadData>> dataForLoad,
+        CancellationToken token = default) => GetEntity(filter, dataForLoad, ignoreGlobalFilters: false, token);
 
-    public async Task<TEntity?> GetEntity<TDto>(
-        Expression<Func<TEntity, bool>> filter, 
-        Expression<Func<TEntity, TDto>> dataForLoad, 
+    protected async Task<TEntity?> GetEntity<TLoadData>(
+        Expression<Func<TEntity, bool>> filter,
+        Expression<Func<TEntity, TLoadData>> dataForLoad,
+        bool ignoreGlobalFilters,
         CancellationToken token = default) {
-        var queryResult = await EntitiesNoTracking
-            .AsNoTracking()
+        var query = ignoreGlobalFilters 
+            ? EntitiesNoTracking.IgnoreQueryFilters() 
+            : EntitiesNoTracking;
+
+        var queryResult = await query
             .Where(filter)
             .Select(dataForLoad)
             .FirstOrDefaultAsync(token);
 
         if (queryResult == null) return null;
 
-        var result = DomainEntityMapper.MapAggregateRoot<TDto, TEntity>(queryResult);
+        var result = DomainEntityMapper.MapAggregateRoot<TLoadData, TEntity>(queryResult);
 
         Entities.Attach(result);
 
         return result;
     }
 
-    public async Task<TEntity?> GetEntity<TDto>(
-        Guid id, 
-        Expression<Func<TEntity, bool>> additiveFilter, 
-        Expression<Func<TEntity, TDto>> dataForLoad, 
-        CancellationToken token = default) {
-        var queryResult = await EntitiesNoTracking
-            .Where(x => x.Id == id)
-            .Where(additiveFilter)
-            .Select(dataForLoad)
-            .FirstOrDefaultAsync(token);
-
-        if (queryResult == null) return null;
-
-        var result = DomainEntityMapper.MapAggregateRoot<TDto, TEntity>(queryResult);
-
-        Entities.Attach(result);
-
-        return result;
-    }
-
-    public async Task<List<TEntity>> GetEntities<TDto>(
-        Expression<Func<TEntity, bool>> filter, 
-        Expression<Func<TEntity, TDto>> dataForLoad, 
+    public async Task<List<TEntity>> GetEntities<TLoadData>(
+        Expression<Func<TEntity, bool>> filter,
+        Expression<Func<TEntity, TLoadData>> dataForLoad,
         CancellationToken token = default) {
         var queryResult = await EntitiesNoTracking
             .Where(filter)
@@ -68,7 +49,7 @@ public abstract class BaseSqlRepository<TEntity>(DbContext context) : IRepositor
         var list = new List<TEntity>(queryResult.Count);
 
         for (int index = 0; index < queryResult.Count; index++) {
-            var entity = DomainEntityMapper.MapAggregateRoot<TDto, TEntity>(queryResult[index]);
+            var entity = DomainEntityMapper.MapAggregateRoot<TLoadData, TEntity>(queryResult[index]);
             list[index] = entity;
             Entities.Attach(entity);
         }

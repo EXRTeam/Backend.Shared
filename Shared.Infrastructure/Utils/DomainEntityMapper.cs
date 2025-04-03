@@ -20,17 +20,12 @@ internal static class DomainEntityMapper {
 
     private static readonly Dictionary<(Type, Type), object> mappers = [];
 
-    public static TDestination MapAggregateRoot<TSource, TDestination>(TSource source)
-        where TDestination : IAggregateRoot {
+    public static TDestination MapAggregateRoot<TSource, TDestination>(TSource source) {
         var key = (typeof(TSource), typeof(TDestination));
 
         if (mappers.TryGetValue(key, out var existingMapper)) {
             var result = ((Func<TSource, TDestination>)existingMapper)(source);
             return result;
-        }
-
-        if (typeof(TSource).GetProperty(nameof(IAggregateRoot.Id)) == null) {
-            throw new InvalidOperationException("Source object should be has Id property");
         }
 
         var mapper = CreateMapFunction<TSource, TDestination>();

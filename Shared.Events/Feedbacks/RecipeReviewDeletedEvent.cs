@@ -1,4 +1,4 @@
-﻿namespace Shared.Events.Users;
+﻿namespace Shared.Messages.Feedbacks;
 
 public record RecipeReviewDeletedEvent(
     Guid RecipeId,

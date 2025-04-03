@@ -3,8 +3,8 @@ using Shared.Domain.Results;
 
 namespace Shared.Application.Mediator;
 
-public interface ICommandHandler<TRequest> : IRequestHandler<TRequest, Result> 
-    where TRequest : class, ICommand;
+public interface ICommandHandler<TCommand> : IRequestHandler<TCommand, Result> 
+    where TCommand : class, ICommand;
 
-public interface ICommandHandler<TRequest, TResponse> : IRequestHandler<TRequest, Result<TResponse>>
-    where TRequest : class, ICommand<TResponse>;
+public interface ICommandHandler<TCommand, TResponse> : IRequestHandler<TCommand, Result<TResponse>>
+    where TCommand : class, ICommand<TResponse>;
