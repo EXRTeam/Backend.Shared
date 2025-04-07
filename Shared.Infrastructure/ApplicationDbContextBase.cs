@@ -10,7 +10,12 @@ public abstract class ApplicationDbContextBase(DbContextOptions options) : DbCon
     public async Task<IDbTransaction> BeginTransaction(IsolationLevel isolationLevel, CancellationToken token) 
         => (await Database.BeginTransactionAsync(isolationLevel, token)).GetDbTransaction();
 
-    public Task<int> SaveChanges(CancellationToken token) => SaveChangesAsync(token);
+    public Task<int> SaveChanges(CancellationToken token) {
+#if DEBUG
+        var tracker = ChangeTracker.DebugView.LongView;
+#endif
+        return SaveChangesAsync(token);
+    }
 
     protected static void ApplyOutboxMessageConfiguration(ModelBuilder builder)
         => builder

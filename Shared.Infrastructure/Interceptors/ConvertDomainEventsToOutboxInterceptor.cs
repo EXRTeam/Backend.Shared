@@ -24,7 +24,8 @@ internal sealed class ConvertDomainEventsToOutboxInterceptor : SaveChangesInterc
                     domainEvent,
                     new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All }),
                 OccuredOnUtc = DateTime.UtcNow,
-            });
+            })
+            .ToArray();
 
         eventData.Context.Set<OutboxMessage>().AddRange(messages);
 

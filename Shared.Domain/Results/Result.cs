@@ -10,7 +10,7 @@ public class Result {
 
     protected Result() {
         error = null;
-    }
+    } 
 
     protected Result(Error error) {
         this.error = error;

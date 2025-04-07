@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions {
 
         services.AddMassTransit(options => {
             options.SetKebabCaseEndpointNameFormatter();
-
+            
             if (consumersAssembly != null) {
                 options.AddConsumers(consumersAssembly);
             }

@@ -28,10 +28,23 @@ public abstract class BaseAggregateRootRepository<TEntity>(DbContext context)
 
         if (queryResult == null) return null;
 
-        var result = DomainEntityMapper.MapAggregateRoot<TDto, TEntity>(queryResult);
+        var result = DomainEntityMapper.Map<TDto, TEntity>(queryResult);
 
         Entities.Attach(result);
 
         return result;
     }
+
+    public Task<TEntity> GetRequiredEntity<TLoadData>(
+        Guid id,
+        Expression<Func<TEntity, TLoadData>> dataForLoad,
+        CancellationToken token = default)
+        => GetEntity(id, dataForLoad, token)!;
+
+    public Task<TEntity> GetRequiredEntity<TLoadData>(
+        Guid id,
+        Expression<Func<TEntity, bool>> additiveFilter,
+        Expression<Func<TEntity, TLoadData>> dataForLoad,
+        CancellationToken token = default)
+        => GetEntity(id, additiveFilter, dataForLoad, token)!;
 }

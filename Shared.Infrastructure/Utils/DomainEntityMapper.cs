@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Shared.Infrastructure.Utils;
 
-internal static class DomainEntityMapper {
+public static class DomainEntityMapper {
     private static readonly MethodInfo createMapFunctionMethod = 
         typeof(DomainEntityMapper)
             .GetMethod(nameof(CreateMapFunction), BindingFlags.NonPublic | BindingFlags.Static)
@@ -20,7 +20,7 @@ internal static class DomainEntityMapper {
 
     private static readonly Dictionary<(Type, Type), object> mappers = [];
 
-    public static TDestination MapAggregateRoot<TSource, TDestination>(TSource source) {
+    public static TDestination Map<TSource, TDestination>(TSource source) {
         var key = (typeof(TSource), typeof(TDestination));
 
         if (mappers.TryGetValue(key, out var existingMapper)) {

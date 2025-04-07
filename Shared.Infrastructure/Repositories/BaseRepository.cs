@@ -12,7 +12,15 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
     public Task<TEntity?> GetEntity<TLoadData>(
         Expression<Func<TEntity, bool>> filter,
         Expression<Func<TEntity, TLoadData>> dataForLoad,
-        CancellationToken token = default) => GetEntity(filter, dataForLoad, ignoreGlobalFilters: false, token);
+        CancellationToken token = default) 
+        => GetEntity(filter, dataForLoad, ignoreGlobalFilters: false, token);
+
+
+    public Task<TEntity> GetRequiredEntity<TLoadData>(
+        Expression<Func<TEntity, bool>> filter,
+        Expression<Func<TEntity, TLoadData>> dataForLoad,
+        CancellationToken token = default)
+        => GetEntity(filter, dataForLoad, token)!;
 
     protected async Task<TEntity?> GetEntity<TLoadData>(
         Expression<Func<TEntity, bool>> filter,
@@ -30,7 +38,7 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
 
         if (queryResult == null) return null;
 
-        var result = DomainEntityMapper.MapAggregateRoot<TLoadData, TEntity>(queryResult);
+        var result = DomainEntityMapper.Map<TLoadData, TEntity>(queryResult);
 
         Entities.Attach(result);
 
@@ -49,7 +57,7 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
         var list = new List<TEntity>(queryResult.Count);
 
         for (int index = 0; index < queryResult.Count; index++) {
-            var entity = DomainEntityMapper.MapAggregateRoot<TLoadData, TEntity>(queryResult[index]);
+            var entity = DomainEntityMapper.Map<TLoadData, TEntity>(queryResult[index]);
             list[index] = entity;
             Entities.Attach(entity);
         }
@@ -62,22 +70,22 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
             .Where(filter)
             .AnyAsync(token);
 
-    public virtual ValueTask Insert(TEntity entity, CancellationToken token = default) {
-        Entities.Entry(entity).State = EntityState.Added;
+    public ValueTask Insert(TEntity entity, CancellationToken token = default) {
+        Entities.Add(entity);
         return ValueTask.CompletedTask;
     }
 
-    public virtual ValueTask InsertMany(IEnumerable<TEntity> entities, CancellationToken token = default) {
+    public ValueTask InsertMany(IEnumerable<TEntity> entities, CancellationToken token = default) {
         Entities.AddRange(entities);
         return ValueTask.CompletedTask;
     }
 
-    public virtual ValueTask Delete(TEntity entity, CancellationToken token) {
-        Entities.Entry(entity).State = EntityState.Deleted;
+    public ValueTask Delete(TEntity entity, CancellationToken token = default) {
+        Entities.Remove(entity);
         return ValueTask.CompletedTask;
     }
 
-    public virtual ValueTask DeleteMany(IEnumerable<TEntity> entities, CancellationToken token = default) {
+    public ValueTask DeleteMany(IEnumerable<TEntity> entities, CancellationToken token = default) {
         Entities.RemoveRange(entities);
         return ValueTask.CompletedTask;
     }

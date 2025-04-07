@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Infrastructure.Options;
 
@@ -14,7 +15,7 @@ public static class AuthenticationExtensions {
         builder.Services.AddSingleton(jwtOptions);
 
         builder
-            .AddJwtBearer(options =>
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 options.TokenValidationParameters = new TokenValidationParameters {
                     ValidateIssuer = true,
                     ValidIssuer = jwtOptions.Issuer,
