@@ -7,4 +7,4 @@ public record SendVerificationMessageCommand(
     string Email,
     string ConfirmationLink,
     VerificationTokenType Type,
-    DateTime ExpirationTimeUtc);
+    TimeSpan Lifetime);

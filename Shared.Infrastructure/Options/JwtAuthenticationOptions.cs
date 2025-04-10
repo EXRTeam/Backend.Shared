@@ -5,6 +5,6 @@ public class JwtAuthenticationOptions {
     public string Issuer { get; set; } = string.Empty;
     public string Audience { get; set; } = string.Empty;
 
-    public int AccessTokenActivityMinutes { get; set; }
-    public int RefreshTokenActivityDays { get; set; }
+    public int AccessTokenLifetimeInMinutes { get; set; }
+    public int RefreshTokenLifetimeInDays { get; set; }
 }

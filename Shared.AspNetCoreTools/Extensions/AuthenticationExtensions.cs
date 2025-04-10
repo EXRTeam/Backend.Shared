@@ -12,19 +12,25 @@ public static class AuthenticationExtensions {
         var jwtOptions = new JwtAuthenticationOptions();
         configure(jwtOptions);
 
-        builder.Services.AddSingleton(jwtOptions);
+        builder.Services.Configure<JwtAuthenticationOptions>(options => {
+            options.Issuer = jwtOptions.Issuer;
+            options.Audience = jwtOptions.Audience;
+            options.Key = jwtOptions.Key;
 
-        builder
-            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-                options.TokenValidationParameters = new TokenValidationParameters {
-                    ValidateIssuer = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = jwtOptions.Audience,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(jwtOptions.Key),
-                    ValidateLifetime = true,
-                });
+            options.AccessTokenLifetimeInMinutes = jwtOptions.AccessTokenLifetimeInMinutes;
+            options.RefreshTokenLifetimeInDays = jwtOptions.RefreshTokenLifetimeInDays;
+        });
+
+        builder.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+            options.TokenValidationParameters = new TokenValidationParameters {
+                ValidateIssuer = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidateAudience = true,
+                ValidAudience = jwtOptions.Audience,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(jwtOptions.Key),
+                ValidateLifetime = true,
+            });
 
         return builder;
     }

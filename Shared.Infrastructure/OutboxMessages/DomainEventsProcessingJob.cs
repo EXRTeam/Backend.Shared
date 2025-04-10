@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Quartz;
@@ -7,14 +8,16 @@ using Shared.Domain.Entities;
 
 namespace Shared.Infrastructure.OutboxMessages;
 
-internal sealed class ProcessOutboxMessagesJob(
+internal sealed class DomainEventsProcessingJob(
     ApplicationDbContextBase dbContext, 
     IPublisher publisher,
-    ILogger<ProcessOutboxMessagesJob> logger) 
+    ILogger<DomainEventsProcessingJob> logger) 
     : IJob {
-    public static readonly JobKey Key = new(nameof(ProcessOutboxMessagesJob));
+    public static readonly JobKey Key = new(nameof(DomainEventsProcessingJob));
 
     public async Task Execute(IJobExecutionContext context) {
+        logger.LogInformation("Domain events processing has started...");
+
          var messages = await dbContext.Set<OutboxMessage>()
             .Where(x => x.ProcessedOnUtc == null)
             .OrderBy(x => x.OccuredOnUtc)
@@ -22,7 +25,9 @@ internal sealed class ProcessOutboxMessagesJob(
             .ToListAsync(context.CancellationToken);
 
         foreach (var message in messages) {
-            var domainEvent = JsonConvert.DeserializeObject<IDomainEvent>(message.Content);
+            var domainEvent = JsonConvert.DeserializeObject<IDomainEvent>(
+                message.Content, 
+                new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
 
             if (domainEvent == null) {
                 logger.LogError("Couldn't deserialize the event: {eventJson}", message.Content);
@@ -40,6 +45,8 @@ internal sealed class ProcessOutboxMessagesJob(
             }
         }
 
-        await dbContext.SaveChangesAsync(context.CancellationToken);
+        var processedMessagesCount = await dbContext.SaveChangesAsync(context.CancellationToken);
+
+        logger.LogInformation("{MessagesCount} domain events were processed", processedMessagesCount);
     }
 }

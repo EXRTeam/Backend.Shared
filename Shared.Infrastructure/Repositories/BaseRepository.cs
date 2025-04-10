@@ -15,13 +15,6 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
         CancellationToken token = default) 
         => GetEntity(filter, dataForLoad, ignoreGlobalFilters: false, token);
 
-
-    public Task<TEntity> GetRequiredEntity<TLoadData>(
-        Expression<Func<TEntity, bool>> filter,
-        Expression<Func<TEntity, TLoadData>> dataForLoad,
-        CancellationToken token = default)
-        => GetEntity(filter, dataForLoad, token)!;
-
     protected async Task<TEntity?> GetEntity<TLoadData>(
         Expression<Func<TEntity, bool>> filter,
         Expression<Func<TEntity, TLoadData>> dataForLoad,
@@ -45,7 +38,7 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
         return result;
     }
 
-    public async Task<List<TEntity>> GetEntities<TLoadData>(
+    protected async Task<List<TEntity>> GetEntities<TLoadData>(
         Expression<Func<TEntity, bool>> filter,
         Expression<Func<TEntity, TLoadData>> dataForLoad,
         CancellationToken token = default) {
@@ -65,7 +58,7 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
         return list;
     }
 
-    public Task<bool> Any(Expression<Func<TEntity, bool>> filter, CancellationToken token = default)
+    protected Task<bool> Any(Expression<Func<TEntity, bool>> filter, CancellationToken token = default)
         => EntitiesNoTracking
             .Where(filter)
             .AnyAsync(token);

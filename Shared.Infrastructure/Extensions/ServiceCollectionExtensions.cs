@@ -44,18 +44,18 @@ public static class ServiceCollectionExtensions {
         return services;
     }
 
-    public static IServiceCollectionQuartzConfigurator AddDomainEventHandlingJob(
+    public static IServiceCollectionQuartzConfigurator AddDomainEventsProcessingJob(
         this IServiceCollectionQuartzConfigurator quartzServices, 
         Action<ITriggerConfigurator> configureTrigger) 
         => quartzServices
-                .AddJob<ProcessOutboxMessagesJob>(
-                    ProcessOutboxMessagesJob.Key,
+                .AddJob<DomainEventsProcessingJob>(
+                    DomainEventsProcessingJob.Key,
                     jobOptions => jobOptions.DisallowConcurrentExecution())
                 .AddTrigger(triggerOptions => {
                     configureTrigger(triggerOptions);
 
                     triggerOptions
-                        .ForJob(ProcessOutboxMessagesJob.Key);
+                        .ForJob(DomainEventsProcessingJob.Key);
                 });
 
     public static IServiceCollection AddApplicationContext<TContext>(
@@ -83,8 +83,8 @@ public static class ServiceCollectionExtensions {
         this IServiceCollection services)
         where TEntity : class, IAggregateRoot
         where TContract : class
-        where TRepository : class, IAggregateRootRepository<TEntity>, TContract
+        where TRepository : class, IRepository<TEntity>, TContract
         => services
             .AddScoped<TContract, TRepository>()
-            .AddScoped<IAggregateRootRepository<TEntity>, TRepository>();
+            .AddScoped<IRepository<TEntity>, TRepository>();
 }
