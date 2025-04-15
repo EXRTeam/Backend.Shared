@@ -9,15 +9,15 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
     protected DbSet<TEntity> Entities => context.Set<TEntity>();
     protected IQueryable<TEntity> EntitiesNoTracking => Entities.AsNoTracking();
 
-    public Task<TEntity?> GetEntity<TLoadData>(
+    protected Task<TEntity?> GetEntity(
         Expression<Func<TEntity, bool>> filter,
-        Expression<Func<TEntity, TLoadData>> dataForLoad,
+        Expression<Func<TEntity, object>> dataForLoad,
         CancellationToken token = default) 
         => GetEntity(filter, dataForLoad, ignoreGlobalFilters: false, token);
 
-    protected async Task<TEntity?> GetEntity<TLoadData>(
+    protected async Task<TEntity?> GetEntity(
         Expression<Func<TEntity, bool>> filter,
-        Expression<Func<TEntity, TLoadData>> dataForLoad,
+        Expression<Func<TEntity, object>> dataForLoad,
         bool ignoreGlobalFilters,
         CancellationToken token = default) {
         var query = ignoreGlobalFilters 
@@ -31,16 +31,16 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
 
         if (queryResult == null) return null;
 
-        var result = DomainEntityMapper.Map<TLoadData, TEntity>(queryResult);
+        var result = DomainEntityMapper.Map<TEntity>(queryResult);
 
         Entities.Attach(result);
 
         return result;
     }
 
-    protected async Task<List<TEntity>> GetEntities<TLoadData>(
+    protected async Task<List<TEntity>> GetEntities(
         Expression<Func<TEntity, bool>> filter,
-        Expression<Func<TEntity, TLoadData>> dataForLoad,
+        Expression<Func<TEntity, object>> dataForLoad,
         CancellationToken token = default) {
         var queryResult = await EntitiesNoTracking
             .Where(filter)
@@ -50,7 +50,7 @@ public abstract class BaseRepository<TEntity>(DbContext context) : IRepository<T
         var list = new List<TEntity>(queryResult.Count);
 
         for (int index = 0; index < queryResult.Count; index++) {
-            var entity = DomainEntityMapper.Map<TLoadData, TEntity>(queryResult[index]);
+            var entity = DomainEntityMapper.Map<TEntity>(queryResult[index]);
             list[index] = entity;
             Entities.Attach(entity);
         }

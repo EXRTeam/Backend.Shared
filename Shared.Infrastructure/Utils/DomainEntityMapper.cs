@@ -1,44 +1,46 @@
-﻿using Shared.Domain.Entities;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Shared.Infrastructure.Utils;
 
 public static class DomainEntityMapper {
-    private static readonly MethodInfo createMapFunctionMethod = 
+    private static readonly MethodInfo createMapFunctionMethod =
         typeof(DomainEntityMapper)
             .GetMethod(nameof(CreateMapFunction), BindingFlags.NonPublic | BindingFlags.Static)
-            ?? throw new NullReferenceException("Suka blya");
+            ?? throw new NullReferenceException();
 
     private static readonly MethodInfo enumerableSelectMethod =
         typeof(Enumerable)
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .FirstOrDefault(m => 
-                m.Name == "Select" 
-                && m.IsGenericMethodDefinition 
+            .FirstOrDefault(m =>
+                m.Name == "Select"
+                && m.IsGenericMethodDefinition
                 && m.GetParameters().Length == 2)!;
 
-    private static readonly Dictionary<(Type, Type), object> mappers = [];
+    private static readonly Dictionary<(Type, Type), Delegate> mappers = [];
 
-    public static TDestination Map<TSource, TDestination>(TSource source) {
-        var key = (typeof(TSource), typeof(TDestination));
+    public static TDestination Map<TDestination>(object source) {
+        var sourceType = source.GetType();
+        var destinationType = typeof(TDestination);
+
+        var key = (sourceType, destinationType);
 
         if (mappers.TryGetValue(key, out var existingMapper)) {
-            var result = ((Func<TSource, TDestination>)existingMapper)(source);
+            var result = ((Func<object, TDestination>)existingMapper)(source);
             return result;
         }
 
-        var mapper = CreateMapFunction<TSource, TDestination>();
+        var mapper = CreateMapFunction<TDestination>(sourceType);
         mappers[key] = mapper;
 
         return mapper(source);
     }
 
-    private static Func<TSource, TDestination> CreateMapFunction<TSource, TDestination>() {
+    private static Func<object, TDestination> CreateMapFunction<TDestination>(Type sourceType) {
         var destinationType = typeof(TDestination);
-        var sourceType = typeof(TSource);
 
-        var sourceParameter = Expression.Parameter(sourceType, $"source_{sourceType}");
+        var objectSourceParameter = Expression.Parameter(typeof(object), $"source_{sourceType}");
+        var sourceParameter = Expression.Convert(objectSourceParameter, sourceType);
 
         var destinationPrivateConstructor = destinationType.GetConstructor(
             BindingFlags.Instance | BindingFlags.NonPublic, Type.EmptyTypes)
@@ -69,9 +71,9 @@ public static class DomainEntityMapper {
                 ?? destinationType.GetField(
                     string.Concat(
                         char.ToLower(destinationProperty.Name[0]),
-                        destinationProperty.Name[1..]), 
+                        destinationProperty.Name[1..]),
                     BindingFlags.NonPublic | BindingFlags.Instance)
-                ) 
+                )
                 ?? throw new NullReferenceException(
                     $"Field of property {destinationProperty.Name} at destination type {destinationType} not found");
 
@@ -92,15 +94,15 @@ public static class DomainEntityMapper {
         }
 
         var bodyExpressions = new List<Expression> {
-            creationDestinationObject
-        };
+        creationDestinationObject
+    };
 
         bodyExpressions.AddRange(propertyAssignExpressions);
         bodyExpressions.Add(createdDestinationObjectVariable);
 
         var body = Expression.Block([createdDestinationObjectVariable], bodyExpressions);
 
-        var lambdaExpression = Expression.Lambda<Func<TSource, TDestination>>(body, sourceParameter);
+        var lambdaExpression = Expression.Lambda<Func<object, TDestination>>(body, objectSourceParameter);
         return lambdaExpression.Compile();
     }
 
@@ -161,8 +163,8 @@ public static class DomainEntityMapper {
                         Expression.Property(sourceParameter, sourceProperty),
                         Expression.Constant(
                             createMapFunctionMethod
-                                .MakeGenericMethod(sourceGenericArgumentType, destinationGenericArgumentType)
-                                .Invoke(null, null))
+                                .MakeGenericMethod(destinationGenericArgumentType)
+                                .Invoke(null, [sourcePropertyType]))
                     )
                 );
             }
@@ -171,8 +173,8 @@ public static class DomainEntityMapper {
         return Expression.Invoke(
             Expression.Constant(
                 createMapFunctionMethod
-                    .MakeGenericMethod(sourcePropertyType, destinationPropertyType)
-                    .Invoke(null, null)),
+                    .MakeGenericMethod(destinationPropertyType)
+                    .Invoke(null, [sourcePropertyType])),
             Expression.Property(sourceParameter, sourceProperty));
     }
 }
