@@ -38,6 +38,7 @@ public sealed class Result<TValue> : Result {
     public new static Result<TValue> Success(TValue value) => new(value);
     public new static Result<TValue> Failure(Error error) => new(error);
 
+    public static implicit operator TValue(Result<TValue> result) => result.Value;
     public static implicit operator Result<TValue>(TValue value) => new(value);
     public static implicit operator Result<TValue>(Error error) => new(error);
 }
