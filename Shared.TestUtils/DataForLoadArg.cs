@@ -7,9 +7,9 @@ namespace Shared.TestUtils;
 
 public static class DataForLoadArg {
     /// <summary>
-    /// DataForLoadArg.Equals<SomeDomainEntity>(nameof(SomeDomainEntity.Id), ...)
+    /// DataForLoadArg.HasProperties<SomeDomainEntity>(nameof(SomeDomainEntity.Id), ...)
     /// </summary>
-    public static Expression<Func<TSource, object>> Equals<TSource>(
+    public static Expression<Func<TSource, object>> HasProperties<TSource>(
         params string[] properties)
         => Arg.Do<Expression<Func<TSource, object>>>(expression => {
             var dataForLoadType = expression.Body.Type;
