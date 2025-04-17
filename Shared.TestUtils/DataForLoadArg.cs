@@ -6,9 +6,6 @@ using System.Reflection;
 namespace Shared.TestUtils;
 
 public static class DataForLoadArg {
-    /// <summary>
-    /// DataForLoadArg.HasProperties<SomeDomainEntity>(nameof(SomeDomainEntity.Id), ...)
-    /// </summary>
     public static Expression<Func<TSource, object>> HasProperties<TSource>(
         params string[] properties)
         => Arg.Do<Expression<Func<TSource, object>>>(expression => {
@@ -21,17 +18,13 @@ public static class DataForLoadArg {
             }
         });
 
-    /// <summary>
-    /// DataForLoadArg.Equals<SomeDomainEntity>(x => new { x.Id, ...}) 
-    /// where SomeDomainEntity has properties Id, ...
-    /// </summary>
     public static Expression<Func<TSource, object>> Equals<TSource>(
-        Expression<Func<TSource, object>> targetExpression) {
-        targetExpression.Body.NodeType
+        Expression<Func<TSource, object>> targetNewExpression) {
+        targetNewExpression.Body.NodeType
             .Should()
             .Be(ExpressionType.New);
 
-        var targetType = targetExpression.Body.Type;
+        var targetType = targetNewExpression.Body.Type;
         var targetProperties = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         return Arg.Do<Expression<Func<TSource, object>>>(expression => {
