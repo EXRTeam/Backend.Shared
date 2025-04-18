@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option csharp_namespace = "Shared.GRPCProtos";
+
+package recipe_projects_service;
+
+service RecipeProjectsService {
+	rpc GetReadyToPublishRecipe (GetReadyForPublicationRecipeRequest) returns (ReadyForPublicationRecipeResponse);
+}
+
+message GetReadyForPublicationRecipeRequest {
+	string id = 1;
+}
+
+message ReadyForPublicationRecipeResponse {
+	string title = 2;
+	string description = 3;
+	repeated IngredientResponse ingredients = 4;
+}
+
+message IngredientResponse {
+	string id = 1;
+	string title = 2;
+	float quantity = 3;
+	string dimension = 4;
+}
