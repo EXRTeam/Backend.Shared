@@ -5,7 +5,7 @@ option csharp_namespace = "Shared.GRPCProtos";
 package recipe_projects_service;
 
 service RecipeProjectsService {
-	rpc GetReadyToPublishRecipe (GetReadyForPublicationRecipeRequest) returns (ReadyForPublicationRecipeResponse);
+	rpc GetReadyForPublicationRecipe (GetReadyForPublicationRecipeRequest) returns (ReadyForPublicationRecipeResponse);
 }
 
 message GetReadyForPublicationRecipeRequest {
@@ -13,9 +13,25 @@ message GetReadyForPublicationRecipeRequest {
 }
 
 message ReadyForPublicationRecipeResponse {
+	string title = 1;
+	string description = 2;
+	string shortDescription = 3;
+	string imageUrl = 4;
+	string publisherId = 5;
+	repeated IngredientResponse ingredients = 6;
+	repeated CookingStepResponse cookingSteps = 7;
+	CuisineResponse cuisine = 8;
+}
+
+message CuisineResponse {
+	string id = 1;
 	string title = 2;
-	string description = 3;
-	repeated IngredientResponse ingredients = 4;
+}
+
+message CookingStepResponse {
+	int32 stepNumber = 1;
+	string description = 2;
+	string imageUrl = 3;
 }
 
 message IngredientResponse {

@@ -2,9 +2,9 @@ syntax = "proto3";
 
 option csharp_namespace = "Shared.GRPCProtos";
 
-package users_profile_service;
+package user_profiles_service;
 
-service UsersProfileService {
+service UserProfilesService {
 	rpc GetProfile (GetUserProfileRequest) returns (UserProfileResponse);
 }
 
@@ -16,4 +16,5 @@ message UserProfileResponse {
 	string id = 1;
 	string firstname = 2;
 	string avatar_url = 3;
+	string lastname = 4;
 }
