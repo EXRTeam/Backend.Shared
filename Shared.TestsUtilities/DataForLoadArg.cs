@@ -3,14 +3,14 @@ using NSubstitute;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Shared.TestUtils;
+namespace Shared.TestsUtilities;
 
 public static class DataForLoadArg {
     public static Expression<Func<TSource, object>> HasProperties<TSource>(
         params string[] properties)
         => Arg.Do<Expression<Func<TSource, object>>>(expression => {
             var dataForLoadType = expression.Body.Type;
-            
+
             for (int i = 0; i < properties.Length; i++) {
                 dataForLoadType.GetProperty(properties[i])
                     .Should()
